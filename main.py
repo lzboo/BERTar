@@ -4,7 +4,7 @@ import argparse
 from datetime import datetime
 
 import torch
-from core.model import deepTarget
+from model.models import *
 from utils.wrapper import train_model, predict_result
 
 
