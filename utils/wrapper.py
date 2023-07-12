@@ -14,6 +14,11 @@ from dataset.dataset import TrainDataset, Dataset
 from torch.utils.data import DataLoader
 from utils.sequence import postprocess_result
 
+import torchvision
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+
 
 def train_model(mirna_fasta_file, mrna_fasta_file, train_file, model=None, cts_size=30, seed_match='offset-9-mer-m7', level='gene', batch_size=32, epochs=10, save_file=None, device='gpu'):
     """
@@ -149,3 +154,51 @@ def predict_result(mirna_fasta_file, mrna_fasta_file, query_file, model=None, we
         # print(results)
         '''
     return acc
+
+def visualization(mirna_fasta_file, mrna_fasta_file, query_file, test_model, model_path):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    model_path_s = model_path
+    model = test_model
+    model = model.to(device)
+    model.load_state_dict(torch.load(model_path_s, map_location=None))
+    # model.load_state_dict(torch.load())  
+    model.eval()
+    
+    # Load test set
+    testset = Dataset(mirna_fasta_file, mrna_fasta_file, query_file, seed_match=seed_match, header=True, train=True)
+    dataloader = DataLoader(dataset=testset, batch_size=32, shuffle=True)
+    
+    
+    # Get feature layer
+    features = []
+    labels = []
+    
+    with torch.no_grad():
+        for ((mirna, mrna), label) in dataloader:
+            mirna, mrna, label = mirna.to(device, dtype=torch.int64), mrna.to(device, dtype=torch.int64), label.to(device)
+            outputs = model(mirna, mrna)
+            # print(outputs)
+            features.append(outputs.cpu())
+            labels.append(label.cpu())
+    
+    features = torch.cat(features, dim=0)
+    labels = torch.cat(labels, dim=0)
+    # print(features.size())
+    # print(features)
+    # print(labels.size())
+    # print(labels)
+    
+    tsne = TSNE(n_components=2, perplexity=30, init='pca', random_state=42)
+    embedded_features = tsne.fit_transform(features)
+    
+    
+    # Plot features after t-SNE dimensionality reduction
+    cm=ListedColormap(['cornflowerblue','orange'])
+    plt.figure(figsize=(5, 5))
+    plt.scatter(embedded_features[:, 0], embedded_features[:, 1], c=labels, cmap=cm, marker='.', s=10)
+    # plt.scatter(embedded_features_s[:, 0], embedded_features_s[:, 1], c=labels_s, cmap='Purples', marker='.')
+    # plt.colorbar()
+    plt.title('layer')
+    plt.legend()
+    plt.show()
