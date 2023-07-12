@@ -1,4 +1,4 @@
-# Deep Learning-Based microRNA Target Prediction Using Experimental Negative Data
+# BERTar
 
 ### :wrench: To install python dependencies:
 ```bash
@@ -17,13 +17,6 @@ $ python main.py --help
 
 ### :page_with_curl: To cite the paper:
 ```
-@article{lee2020deep,
-  title={Deep Learning-Based microRNA Target Prediction Using Experimental Negative Data},
-  author={Lee, Byunghan},
-  journal={IEEE Access},
-  volume={8},
-  pages={197908--197916},
-  year={2020},
-  publisher={IEEE}
+@article{
 }
 ```
